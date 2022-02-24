@@ -14,11 +14,11 @@ const RouterPage = (props) => {
     return (
         <Router basename={encodeURI(props.pageInfo.basePath)}>
             <Switch>
-                <Route path="/:category">
-                    <CategoryPage {...props} />
-                </Route>
                 <Route exact path="/">
                     <Home {...props} />
+                </Route>
+                <Route path="/:category">
+                    <CategoryPage {...props} />
                 </Route>
             </Switch>
         </Router>

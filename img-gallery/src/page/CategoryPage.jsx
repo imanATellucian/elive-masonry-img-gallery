@@ -25,19 +25,18 @@ const CategoryPage = (props) => {
     const { classes, pageControl: { setPageTitle, navigateToPage } } = props;
     const {category: initialCategory} = useParams();
 
-    // takes care of the initial state of the page
+    const [category, setCategory] = useState(initialCategory);
+
     useEffect(() => {
         setAllImgsForCategory(imgsByCategory(category));
         setPageTitle(`${category} Memes`);
-    }, [category, initialCategory]);
+        console.log('useEffect fires');
+    }, [category]);
 
     const bubbleUpCategory = (cat) => {
         setCategory(cat);
-        setAllImgsForCategory(imgsByCategory(cat));
-        setPageTitle(`${cat} Memes`);
     }
 
-    const [category, setCategory] = useState(initialCategory);
     const [photo, setPhoto] = useState();
     const [popPhoto, setPopPhoto] = useState(false);
     const [allImgsForCategory, setAllImgsForCategory] = useState([]);
