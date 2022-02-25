@@ -4,10 +4,10 @@ import { Typography, TextLink, Button } from '@ellucian/react-design-system/core
 import PropTypes from 'prop-types';
 import React, {Component, useEffect, useState} from 'react';
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
-import PageNav from '../components/PageNav';
 import { allCategories, imgsByCategory } from '../components/util';
 import Masonry from 'react-masonry-component';
 import ImgPop from '../components/pop';
+import PageNavWithHook from '../components/PageNavWithHook';
 
 const styles = () => ({
     card: {
@@ -21,8 +21,8 @@ const styles = () => ({
     }
 });
 
-const CategoryPage = (props) => {
-    const { classes, pageControl: { setPageTitle, navigateToPage } } = props;
+const CategoryPageWithHook = (props) => {
+    const { classes, pageControl: { setPageTitle } } = props;
     const {category: initialCategory} = useParams();
 
     const [category, setCategory] = useState(initialCategory);
@@ -49,7 +49,7 @@ const CategoryPage = (props) => {
 
     return (
         <div>
-            <PageNav category={category} setCategory={setCategory} categories={categories} navigateToPage={navigateToPage} />
+            <PageNavWithHook category={category} setCategory={setCategory} categories={categories} />
             <Masonry >
             {allImgsForCategory.map((item, index) => (
                 <Button className={classes.butt} onClick={() => setPhotoAndPop(item)} variant="text" key={index}>
@@ -72,9 +72,9 @@ const CategoryPage = (props) => {
     );
 };
 
-CategoryPage.propTypes = {
+CategoryPageWithHook.propTypes = {
     classes: PropTypes.object.isRequired,
     pageControl: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(CategoryPage);
+export default withStyles(styles)(CategoryPageWithHook);

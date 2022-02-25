@@ -52,8 +52,6 @@ const GalleryCard = (props) => {
     const [meme, setMeme] = useState();
 
     const dialogTitle = `${category} meme`;
-    const dialogContent = "nope";
-    const customizations = { dialogTitle, dialogContent };
 
     useEffect(() => {
         randomizer();
