@@ -1,8 +1,4 @@
-// import only what you need from lodash
-import sampleSize from "lodash/sampleSize";
-import sample from "lodash/sample";
-
-export const memes = {
+const memes = {
     cats: [
         'https://i.imgur.com/S07cJho.jpeg',
         'https://i.imgur.com/JHx31Yx.jpeg',
@@ -86,32 +82,4 @@ export const memes = {
     ]
 };
 
-export const allImgs = () => {
-    const all = [];
-    // eslint-disable-next-line no-unused-vars
-    for (const [Category, images] of Object.entries(memes)) {
-        all.push(...images);
-    }
-    return all;
-}
-
-export const imgsByCategory = (category) => {
-    return memes[category];
-}
-
-export const allCategories = () => {
-    return Object.keys(memes);
-}
-
-export const randomImgs = (howMany = 12) => {
-    return sampleSize(allImgs(), howMany);
-}
-
-export const getRandomImg = (category="any") => {
-    const categories = Object.keys(memes);
-    if (categories.indexOf(category) != -1 ) {
-        return { category, meme: sample(memes[category]) };
-    }
-    const randomCategory= sample(categories);
-    return { category: randomCategory, meme: sample(memes[randomCategory])};
-}
+module.exports.memes = memes;
