@@ -1,10 +1,11 @@
 const AWS = require('aws-sdk');
 const { memes } = require('./memes');
+require('dotenv').config();
 AWS.config.update({region:'us-east-1'});
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 const params = {
-    TableName: 'est-image-gallery'
+    TableName: process.env.TABLE_NAME
 }
 
 async function createItem(item) {

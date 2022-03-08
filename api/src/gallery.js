@@ -1,7 +1,7 @@
 // ESM imports made possible by serverless-bundle plugin defined in serverless.yml
 // if you are building a lambda without this plugin, you'll have to use commonJs syntax
 import { StatusCodes } from 'http-status-codes';
-import {memes} from './memes';
+import {memes} from '../../img-gallery/src/components/util';
 
 
 const buildResponse = ({ statusCode, headers, body }) => {
@@ -81,6 +81,8 @@ export const handler = (event, context, callback) => {
                             category: randomCategory,
                             meme: randomMeme
                         };
+                    } else if (category && category === 'all') {
+                        data = memes;
                     }
                     callback(null, buildResponse({
                         statusCode: StatusCodes.OK,

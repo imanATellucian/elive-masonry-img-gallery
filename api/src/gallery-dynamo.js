@@ -8,6 +8,9 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const params = {
     TableName: 'est-image-gallery'
 };
+// AWS lambda docs used:
+// * https://docs.amplify.aws/guides/functions/dynamodb-from-js-lambda/q/platform/js/
+// * https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property
 
 /*
 async function listItems() {
@@ -15,6 +18,8 @@ async function listItems() {
         // Warning: node aws-sdk's "scan" function will return paged
         // results when data exceeds 2M so if your table exceeds certain
         // limits you may need to accomodate paging
+        // I decided to use the query function instead of scan for this reason
+        // but will leave this here as a demo
         const data = await docClient.scan(params).promise();
         return data;
     } catch (err) {
@@ -23,18 +28,48 @@ async function listItems() {
 }
 */
 
+// Pro tip:  All docs will show calls to the aws-sdk in try/catch blocks
+// however when working with lambdas you only want one try catch block
+// at the parent level so it's easier to debug
 async function itemsByAlbum(album) {
     const queryParam = Object.assign(params, {
         KeyConditionExpression: '#name = :value',
         ExpressionAttributeValues: { ':value': album },
         ExpressionAttributeNames: { '#name': 'album' }
     });
-    try {
-        const data = await docClient.query(queryParam).promise();
-        return data;
-    } catch (err) {
-        return err;
+    const data = await docClient.query(queryParam).promise();
+    return data;
+}
+
+async function saveItem(newItem) {
+    const putParams = Object.assign(params, {
+        Item: newItem
+    });
+    await docClient.put(putParams).promise();
+    return putParams;
+};
+
+async function buildCategoriesAndAlbum() {
+    const data = await itemsByAlbum('memes');
+    let categories = [];
+    let imagesByCategory = {};
+    if (data && data.Items) {
+        console.log(data);
+        data.Items.forEach(item => {
+            item.tags.forEach(tag => {
+                if (categories.indexOf(tag) == -1) {
+                    // this is the first time we've encountered this category
+                    // so we'll add it to the category array
+                    // and initialize the key on imgsByCategory
+                    categories.push(tag);
+                    imagesByCategory[tag] = [];
+                }
+                imagesByCategory[tag].push(item.imageUrl);
+            });
+        });
+        console.log("categories", categories);
     }
+    return { categories, imagesByCategory };
 }
 
 const buildResponse = ({ statusCode, headers, body }) => {
@@ -77,7 +112,7 @@ export const handler = (event, context, callback) => {
                 'Access-Control-Allow-Credentials': true,
                 'Access-Control-Allow-Headers': accessControlRequestHeaders,
                 'Access-Control-Allow-Method': accessControlRequestMethod,
-                'Access-Control-Allow-Methods': 'OPTIONS, GET'
+                'Access-Control-Allow-Methods': 'OPTIONS, GET, POST'
             };
         }
 
@@ -101,47 +136,22 @@ export const handler = (event, context, callback) => {
                     const category = event.pathParameters ? event.pathParameters.category : null;
                     console.log("category", category);
                     try {
-                        let data = await itemsByAlbum('memes');
-                        let categories = [];
-                        let imagesByCategory = {};
-                        if (data && data.Items) {
-                            console.log(data);
-                            data.Items.forEach( item => {
-                                item.tags.forEach( tag => {
-                                    if(categories.indexOf(tag) == -1){
-                                        // this is the first time we've encountered this category
-                                        // so we'll add it to the category array
-                                        // and initialize the key on imgsByCategory
-                                        categories.push(tag);
-                                        imagesByCategory[tag] = [];
-                                    }
-                                    imagesByCategory[tag].push(item.imageUrl);
-                                });
-                            });
-                            console.log("categories", categories);
+                        const { categories, imagesByCategory } = await buildCategoriesAndAlbum();
+                        let data;
+                        if (category == 'categories') {
+                            data = categories;
                         }
-                        switch(category) {
-                            case 'categories':
-                                callback(null, buildResponse({
-                                    statusCode: StatusCodes.OK,
-                                    body: categories,
-                                    requestHeaders: event.headers,
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                }));
-                            break;
-                            default:
-                                callback(null, buildResponse({
-                                    statusCode: StatusCodes.OK,
-                                    body: imagesByCategory,
-                                    requestHeaders: event.headers,
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                }));
-                            break;
+                        else {
+                            data = imagesByCategory;
                         }
+                        callback(null, buildResponse({
+                            statusCode: StatusCodes.OK,
+                            body: data,
+                            requestHeaders: event.headers,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }));
                     } catch (error) {
                         console.log(`GET error: ${JSON.stringify(error)}`);
                         callback(null, buildResponse({
@@ -154,7 +164,51 @@ export const handler = (event, context, callback) => {
                     }
                 })();
                 break;
-
+            case 'POST':
+                (async () => {
+                    // decode and destructure post body into expected keys
+                    const { album = "memes", imageUrl = "", tags = [] } = JSON.parse(event.body);
+                    if (imageUrl.length == 0 || tags.length == 0) {
+                        // invalid input, throw it back
+                        callback(null, buildResponse({
+                            statusCode: StatusCodes.BAD_REQUEST,
+                            body: JSON.stringify({
+                                error: 'missing required parameter'
+                            })
+                        }));
+                    } else {
+                        // dynamo has no enforced schema other than the Hash and Range
+                        // that make up the composite primary key so you need to
+                        // enforce schema definitions prior to committing
+                        const screenedItem = {
+                            album,
+                            imageUrl,
+                            tags
+                        };
+                        try {
+                            const putItem = await saveItem(screenedItem);
+                            console.log("saved: ", putItem);
+                            callback(null, buildResponse({
+                                statusCode: StatusCodes.OK,
+                                body: screenedItem,
+                                requestHeaders: event.headers,
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            }));
+                        } catch (error) {
+                            console.log(`GET error: ${JSON.stringify(error)}`);
+                            callback(null, buildResponse({
+                                statusCode: parseInt(error.code) || StatusCodes.BAD_REQUEST,
+                                body: {
+                                    error: error.message || error.toString(0)
+                                },
+                                headers: allHeaders
+                            }));
+                        }
+                    }
+                })();
+                break;
             default:
                 callback(null, buildResponse({
                     statusCode: StatusCodes.StatusCodes.BAD_REQUEST,

@@ -57,7 +57,6 @@ provider:
       # the specific table for the stage
       Resource:
         - "Fn::GetAtt": [ imageTable, Arn ]
-        # - arn:aws:dynamodb:us-east-1:035529058316:table/${env:TABLE_NAME}
 # When deploying to AWS, using the following to restrict CORS to be allowed only for Ellucian Experience
 #    cors:
 #      allowedOrigins:
