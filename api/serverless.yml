@@ -32,6 +32,7 @@ provider:
     JWT_SECRET: ${env:JWT_SECRET}
     EXTENSION_API_TOKEN: ${env:EXTENSION_API_TOKEN}
     TABLE_NAME: ${env:TABLE_NAME}
+    REGION: ${env:REGION}
   lambdaHashingVersion: 20201221
   httpApi:
     useProviderTags: true

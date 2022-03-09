@@ -2,11 +2,11 @@
 // if you are building a lambda without this plugin, you'll have to use commonJs syntax
 import { StatusCodes } from 'http-status-codes';
 import AWS from 'aws-sdk';
-AWS.config.update({ region: 'us-east-1' });
+AWS.config.update({ region: process.env.REGION });
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 const params = {
-    TableName: 'est-image-gallery'
+    TableName: process.env.TABLE_NAME
 };
 // AWS lambda docs used:
 // * https://docs.amplify.aws/guides/functions/dynamodb-from-js-lambda/q/platform/js/
@@ -96,6 +96,10 @@ let allHeaders = {
 export const handler = (event, context, callback) => {
     console.log("i'm here", event);
     try {
+        /*
+        // I'm doing CORS handling in my serverless.yml
+        // so this is commented, but if i wasn't i'd have
+        // to handle options here
         const {
             headers: {
                 'access-control-request-headers': accessControlRequestHeaders,
@@ -104,7 +108,10 @@ export const handler = (event, context, callback) => {
             }
         } = event;
 
-
+        console.log("origin", origin);
+        // When using "allow-credentials" a *.domain is not permitted
+        // the access-control headers have to be an exact match
+        // that's why we rebuild the headers from line 88
         if (origin.match(/(elluciancloud.com$)|(http:\/\/localhost)/)) {
             allHeaders = {
                 'Content-Type': 'application/json',
@@ -118,19 +125,23 @@ export const handler = (event, context, callback) => {
 
         if (process.env.DEBUG === true) {
             console.log(event);
-        }
+        }*/
 
         const { httpMethod } = event;
         console.log('httpMethod ', httpMethod);
         switch (httpMethod) {
+            /*
+            // I have CORS headers defined in serverless.yml
+            // but if i didn't i'd have to handle "options" in my handler
             case 'OPTIONS':
+                console.log("options called");
                 // cors
                 callback(null, buildResponse({
                     statusCode: StatusCodes.OK,
                     body: {},
                     headers: allHeaders
                 }));
-                break;
+                break;*/
             case 'GET':
                 (async () => {
                     const category = event.pathParameters ? event.pathParameters.category : null;
