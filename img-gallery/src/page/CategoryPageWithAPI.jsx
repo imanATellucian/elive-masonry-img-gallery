@@ -4,10 +4,10 @@ import { Typography, TextLink, Button } from '@ellucian/react-design-system/core
 import PropTypes from 'prop-types';
 import React, { Suspense, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
-import { allCategories, imgsByCategory } from '../components/utilForApi';
 const Masonry = React.lazy(() => import('react-masonry-component'));
 const ImgPop = React.lazy(() => import('../components/pop'));
 const PageNavWithHook = React.lazy(() => import('../components/PageNavWithHook'));
+import { allCategories, imgsByCategory } from '../components/utilForApi';
 import { useExtensionInfo } from '@ellucian/experience-extension/extension-utilities';
 
 const styles = () => ({

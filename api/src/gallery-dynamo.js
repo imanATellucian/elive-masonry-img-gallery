@@ -96,10 +96,7 @@ let allHeaders = {
 export const handler = (event, context, callback) => {
     console.log("i'm here", event);
     try {
-        /*
-        // I'm doing CORS handling in my serverless.yml
-        // so this is commented, but if i wasn't i'd have
-        // to handle options here
+
         const {
             headers: {
                 'access-control-request-headers': accessControlRequestHeaders,
@@ -108,7 +105,6 @@ export const handler = (event, context, callback) => {
             }
         } = event;
 
-        console.log("origin", origin);
         // When using "allow-credentials" a *.domain is not permitted
         // the access-control headers have to be an exact match
         // that's why we rebuild the headers from line 88
@@ -122,10 +118,6 @@ export const handler = (event, context, callback) => {
                 'Access-Control-Allow-Methods': 'OPTIONS, GET, POST'
             };
         }
-
-        if (process.env.DEBUG === true) {
-            console.log(event);
-        }*/
 
         const { httpMethod } = event;
         console.log('httpMethod ', httpMethod);
@@ -159,9 +151,9 @@ export const handler = (event, context, callback) => {
                             statusCode: StatusCodes.OK,
                             body: data,
                             requestHeaders: event.headers,
-                            headers: {
+                            headers: Object.assign(allHeaders, {
                                 'Content-Type': 'application/json'
-                            }
+                            })
                         }));
                     } catch (error) {
                         console.log(`GET error: ${JSON.stringify(error)}`);
@@ -185,6 +177,9 @@ export const handler = (event, context, callback) => {
                             statusCode: StatusCodes.BAD_REQUEST,
                             body: JSON.stringify({
                                 error: 'missing required parameter'
+                            }),
+                            headers: Object.assign(allHeaders, {
+                                'Content-Type': 'application/json'
                             })
                         }));
                     } else {
@@ -203,9 +198,9 @@ export const handler = (event, context, callback) => {
                                 statusCode: StatusCodes.OK,
                                 body: screenedItem,
                                 requestHeaders: event.headers,
-                                headers: {
+                                headers: Object.assign(allHeaders, {
                                     'Content-Type': 'application/json'
-                                }
+                                })
                             }));
                         } catch (error) {
                             console.log(`GET error: ${JSON.stringify(error)}`);

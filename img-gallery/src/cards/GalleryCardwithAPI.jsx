@@ -3,10 +3,10 @@ import { spacing40, spacing30 } from '@ellucian/react-design-system/core/styles/
 import { Typography, TextLink, CardMedia, Button, Backdrop } from '@ellucian/react-design-system/core';
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { getRandomImg } from '../components/utilForApi';
 import ImgPop from '../components/pop';
 import { useIntl } from 'react-intl';
 import { withIntl } from '../components/reactIntlProviderWrapper';
+import { getRandomImg } from '../components/utilForApi';
 import { useCardInfo } from '@ellucian/experience-extension/extension-utilities';
 
 const styles = {
